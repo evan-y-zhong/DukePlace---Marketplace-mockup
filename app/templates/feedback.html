@@ -1,0 +1,59 @@
+{% extends "buyer_base.html" %} {% block content %} {% with messages =
+get_flashed_messages(with_categories=True) %} {% if messages %} {% for category,
+message in messages %}
+<div class="alert alert-{{ category }}">{{ message }}</div>
+{% endfor %} {% endif %} {% endwith %}
+<br /><br />
+
+{% if user_id %}
+<h2 class="text-center mb-4">Recent Feedback for User ID: {{ user_id }}</h2>
+
+{% if feedback_list %}
+<table
+  class="table table-hover table-bordered container"
+  style="
+    width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    margin-bottom: 30px;
+  "
+>
+  <thead
+    class="thead-dark"
+    style="background-color: #f3f3f3; color: #333; text-align: left"
+  >
+    <tr style="border-bottom: 2px solid #ddd">
+      <th scope="col" style="padding: 10px">Feedback ID</th>
+      <th scope="col" style="padding: 10px">User ID</th>
+      <th scope="col" style="padding: 10px">Product ID</th>
+      <th scope="col" style="padding: 10px">Rating</th>
+      <th scope="col" style="padding: 10px">Comment</th>
+      <th scope="col" style="padding: 10px">Time Purchased</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for feedback in feedback_list %}
+    <tr style="border-bottom: 1px solid #ddd">
+      <td style="padding: 10px; color: #555">{{ feedback.id }}</td>
+      <td style="padding: 10px; color: #007600; font-weight: bold">
+        {{ feedback.user_id }}
+      </td>
+      <td style="padding: 10px; color: #007600; font-weight: bold">
+        <a href="/product/{{ feedback.product_id }}" style="color: #007600"
+          >{{ feedback.product_id }}</a
+        >
+      </td>
+      <td style="padding: 10px; color: #b12704; font-weight: bold">
+        {{ feedback.rating }}
+      </td>
+      <td style="padding: 10px">{{ feedback.comment }}</td>
+      <td style="padding: 10px">{{ feedback.time_purchased }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p style="font-family: Arial, sans-serif; color: #b12704; font-size: 18px">
+  No feedback found.
+</p>
+{% endif %} {% endif %} {% endblock %}

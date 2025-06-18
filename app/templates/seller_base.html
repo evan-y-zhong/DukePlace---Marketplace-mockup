@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Mini Amazon</title>
+    <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+    <link
+      href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+      rel="stylesheet"
+      id="bootstrap-css"
+    />
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/example.css') }}"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      integrity="sha512-p6VgP4G/1FtGakNYo5g+dXw0l5Y8VnW+LhYfV3F3/1y7mVkZ3kF5rN/C+Pqk1cWX8+7/EWcZnyVvKTxEZO0Hg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+
+    <style>
+      body {
+        font-family: "Lato", sans-serif;
+        background-color: #f7f8fa;
+      }
+
+      .main-head {
+        height: 100px;
+        background-color: #232f3e;
+        color: #fff;
+        padding: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom-left-radius: 15px;
+        border-bottom-right-radius: 15px;
+        position: relative;
+      }
+
+      .main {
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 15px;
+        margin: 20px;
+      }
+
+      .login-main-text {
+        margin-top: 20%;
+        padding: 60px;
+        color: #fff;
+      }
+
+      .login-main-text h2 {
+        font-weight: 300;
+      }
+
+      .btn-grey {
+        background-color: grey !important;
+        color: #fff !important;
+        border-radius: 25px;
+        padding: 10px 20px;
+        font-weight: bold;
+      }
+
+      .btn-light {
+        background-color: #ff9900 !important;
+        color: #fff !important;
+        border-radius: 25px;
+        padding: 10px 20px;
+        font-weight: bold;
+      }
+
+      .btn-light:hover {
+        background-color: #e67e22 !important;
+        color: #fff !important;
+      }
+
+      .text-right {
+        text-align: right;
+        margin-right: 20px;
+      }
+
+      .header-text {
+        font-size: 20px;
+        font-weight: bold;
+        color: #fff;
+      }
+
+      .table {
+        margin-top: 20px;
+        border-radius: 15px;
+        overflow: hidden;
+      }
+
+      .table thead th {
+        background-color: #232f3e;
+        color: #fff;
+      }
+
+      .table-striped tbody tr:nth-of-type(odd) {
+        background-color: #f2f2f2;
+      }
+
+      .table-striped tbody tr:nth-of-type(even) {
+        background-color: #e9e9e9;
+      }
+
+      .table-hover tbody tr:hover {
+        background-color: #d0d0d0;
+      }
+
+      .center-content {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+      }
+
+      .login-button-container {
+        display: flex;
+        align-items: center;
+      }
+
+      .navbar-container {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      .navbar {
+        display: flex;
+        justify-content: center;
+      }
+
+      .navbar-nav {
+        display: flex;
+      }
+
+      .navbar-nav .nav-item {
+        margin: 0 5px;
+      }
+
+      .navbar-nav .nav-item .nav-link {
+        color: white;
+        font-size: 16px;
+      }
+
+      .navbar-nav .nav-item .nav-link:hover {
+        color: #e67e22;
+      }
+
+      .fixed-button {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        background-color: #ffa41c;
+        color: white;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        text-decoration: none;
+        transition: background-color 0.3s, transform 0.3s;
+        z-index: 1000;
+      }
+      .fixed-button:hover {
+        background-color: #ff8c00;
+        transform: scale(1.1);
+      }
+      .main {
+        padding: 40px 20px;
+        min-height: 80vh;
+      }
+      
+      @media (max-width: 992px) {
+        .header-text {
+          font-size: 1.5rem;
+        }
+        .navbar-nav .nav-link {
+          margin-right: 10px;
+        }
+        .fixed-button {
+          width: 50px;
+          height: 50px;
+          font-size: 1.2rem;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="main-head">
+      <div class="header-text">Welcome to Mini Amazon!</div>
+
+      <!-- Seller Navbar -->
+      <div class="navbar-container">
+        <nav class="navbar navbar-expand-lg">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" href="/inv">Inventory</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/seller/orders">Orders</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+
+      <div class="login-button-container">
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('users.profile') }}" class="btn btn-grey ml-3"
+          >Hello, {{ current_user.firstname }}!</a
+        >
+        <a href="/logout" type="button" class="btn btn-light ml-3">Log out</a>
+        {% else %}
+        <a href="/login" type="button" class="btn btn-light">Log in</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="main">{% block content %} {% endblock %}</div>
+
+    <a href="/" class="fixed-button" title="Buyer Homepage">
+      <i class="fas fa-shopping-cart"></i>
+    </a>
+
+    <!-- popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+  </body>
+</html>

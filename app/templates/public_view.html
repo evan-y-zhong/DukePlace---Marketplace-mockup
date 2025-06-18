@@ -1,0 +1,217 @@
+<script
+  src="https://kit.fontawesome.com/8bab419e50.js"
+  crossorigin="anonymous"
+></script>
+{% extends "buyer_base.html" %} {% block content %}
+<style>
+  .star-rating i {
+    cursor: pointer;
+    padding: 2px;
+    font-size: 1.5rem;
+  }
+
+  .star-rating-edit i,
+  .star-rating-new i {
+    color: #e4e5e9;
+  }
+
+  .star-rating-edit i.fas,
+  .star-rating-new i.fas {
+    color: #ffc107 !important;
+  }
+</style>
+
+{% with messages = get_flashed_messages(with_categories=True) %} {% if messages
+%} {% for category, message in messages %}
+<div class="alert alert-{{ category }}">{{ message }}</div>
+{% endfor %} {% endif %} {% endwith %}
+<div class="container mt-5">
+  <h2 class="text-center mb-4">User Public Profile</h2>
+  <p><strong>Account Number:</strong> {{ user.id }}</p>
+  <p><strong>Name:</strong> {{ user.firstname }} {{ user.lastname }}</p>
+
+  {% if is_seller %}
+  <p><strong>Email:</strong> {{ user.email }}</p>
+  <p><strong>Address:</strong> {{ user.address }}</p>
+
+  <div class="average-rating mb-2">
+    {% if average_rating > 0 %}
+    <div class="star-rating d-inline-block">
+      {% for _ in range(full_stars) %}
+      <i class="fa-solid fa-star text-warning"></i>
+      {% endfor %} {% if half_star %}
+      <i class="fa-solid fa-star-half-alt text-warning"></i>
+      {% endif %} {% for _ in range(empty_stars) %}
+      <i class="fa-regular fa-star text-warning"></i>
+      {% endfor %}
+    </div>
+    <span class="ml-2"
+      >{{ average_rating }} out of 5 ({{ num_reviews }} reviews)</span
+    >
+    {% else %}
+    <p>No ratings yet.</p>
+    {% endif %}
+  </div>
+
+  <h3 class="mt-4">Seller Reviews</h3>
+  {% if reviews %}
+  <div class="mt-3">
+    {% for feedback in reviews %}
+    <div class="border p-3 mb-3 rounded">
+      <div class="d-flex align-items-center">
+        <div class="star-rating mr-2">
+          {% for i in range(1, 6) %}
+          <i
+            class="fa{% if feedback.rating >= i %}s{% else %}r{% endif %} fa-star text-warning"
+          ></i>
+          {% endfor %}
+        </div>
+        <strong>User ID: {{ feedback.user_id }}</strong>
+      </div>
+      <p>{{ feedback.comment }}</p>
+      <p>
+        <small><em>Submitted on: {{ feedback.time_of_review }}</em></small>
+      </p>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p>No reviews found for this seller.</p>
+  {% endif %}
+  <!-- User Seller Reviews Section -->
+  <hr class="my-5" />
+  <h4 class="font-weight-bold">Your Review for Seller</h4>
+
+  {% if current_user.is_authenticated %} {% if user_review %}
+  <!-- Display existing review -->
+  <div class="mt-3">
+    <p><strong>Your Rating:</strong> {{ user_review.rating }}</p>
+    <p><strong>Your Comment:</strong> {{ user_review.comment }}</p>
+  </div>
+  <!-- Edit Seller Review Form -->
+  <form
+    action="{{ url_for('feedbacks.add_or_update_seller_review', seller_id=user_id) }}"
+    method="POST"
+    class="mt-3"
+  >
+    <div class="form-group">
+      <label for="seller-rating-edit">Edit Rating:</label>
+      <div class="star-rating star-rating-edit-seller">
+        {% for i in range(1, 6) %}
+        <i
+          class="fa{% if user_review.rating >= i %}s{% else %}r{% endif %} fa-star"
+          data-rating="{{ i }}"
+        ></i>
+        {% endfor %}
+      </div>
+      <input
+        type="hidden"
+        name="rating"
+        id="seller-rating-edit"
+        value="{{ user_review.rating }}"
+      />
+    </div>
+    <div class="form-group">
+      <label for="seller-comment-edit">Edit Comment:</label>
+      <textarea
+        name="comment"
+        id="seller-comment-edit"
+        required
+        class="form-control"
+      >
+{{ user_review.comment }}</textarea
+      >
+    </div>
+    <button class="btn btn-primary" type="submit">Update Review</button>
+  </form>
+
+  <!-- Delete Seller Review -->
+  <form
+    action="{{ url_for('feedbacks.delete_seller_review', seller_id=user_id) }}"
+    method="POST"
+    class="mt-3"
+  >
+    <button class="btn btn-danger" type="submit">Delete Review</button>
+  </form>
+  {% else %}
+
+  <!-- New Seller Review Form -->
+  <form
+    action="{{ url_for('feedbacks.add_or_update_seller_review', seller_id=user_id) }}"
+    method="POST"
+    class="mt-4"
+  >
+    <div class="form-group">
+      <label for="rating-new">Rating:</label>
+      <div class="star-rating star-rating-new">
+        {% for i in range(1, 6) %}
+        <i class="far fa-star" data-rating="{{ i }}"></i>
+        {% endfor %}
+      </div>
+      <input type="hidden" name="rating" id="seller-rating-new" value="0" />
+    </div>
+    <div class="form-group">
+      <label for="seller-comment-new">Comment:</label>
+      <textarea
+        name="comment"
+        id="seller-comment-new"
+        required
+        class="form-control"
+      ></textarea>
+    </div>
+    <button class="btn btn-success" type="submit">Submit Review</button>
+  </form>
+  {% endif %} {% else %}
+  <p>
+    Please <a href="{{ url_for('users.login') }}">log in</a> to leave a seller
+    review.
+  </p>
+  {% endif %} {% else %}
+  <p>Not a seller.</p>
+  {% endif %}
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    function handleStarRating(containerClass, inputId) {
+      const container = document.querySelector("." + containerClass);
+      if (!container) return;
+
+      const stars = container.querySelectorAll("i");
+      const input = document.getElementById(inputId);
+
+      function updateStars(rating) {
+        stars.forEach((star, index) => {
+          star.classList.remove("fas", "far");
+          star.classList.add(index < rating ? "fas" : "far");
+        });
+        input.value = rating;
+      }
+
+      stars.forEach((star) => {
+        star.addEventListener("click", (e) => {
+          const rating = parseInt(e.target.dataset.rating);
+          updateStars(rating);
+        });
+
+        star.addEventListener("mouseover", (e) => {
+          const rating = parseInt(e.target.dataset.rating);
+          stars.forEach((s, index) => {
+            s.classList.remove("fas", "far");
+            s.classList.add(index < rating ? "fas" : "far");
+          });
+        });
+      });
+
+      container.addEventListener("mouseout", () => {
+        updateStars(parseInt(input.value) || 0);
+      });
+
+      updateStars(parseInt(input.value) || 0);
+    }
+
+    handleStarRating("star-rating-new", "seller-rating-new");
+    handleStarRating("star-rating-edit-seller", "seller-rating-edit");
+  });
+</script>
+{% endblock %}

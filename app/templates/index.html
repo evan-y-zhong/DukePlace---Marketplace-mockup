@@ -1,0 +1,181 @@
+{% extends "buyer_base.html" %}
+
+{% block content %}
+{% with messages = get_flashed_messages(with_categories=True) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<style>
+  #products-section .card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+  }
+</style>
+
+<div class="container">
+  <h1 class="text-center my-4">Welcome!</h1>
+
+  <!-- Search and Filter Form -->
+  <form id="search-form" action="{{ url_for('index.index') }}" method="get" class="mb-4">
+    <div class="row mb-3">
+      <div class="col">
+        <input type="text" class="form-control" placeholder="{% if search_type == 'user' %}Search users by name or ID{% else %}Search products by name or description{% endif %}" name="search" value="{{ search_query }}">
+      </div>
+      <div class="col category-dropdown" {% if search_type == 'user' %}style="display: none;"{% endif %}>
+        <select class="form-control" name="category">
+          <option value="">All Categories</option>
+          {% for category in categories %}
+          <option value="{{ category }}" {% if category == current_category %}selected{% endif %}>{{ category }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col sort-dropdown" {% if search_type == 'user' %}style="display: none;"{% endif %}>
+        <select class="form-control" name="sort">
+          <option value="price_asc" {% if sort_order == 'price_asc' %}selected{% endif %}>Price Low to High</option>
+          <option value="price_desc" {% if sort_order == 'price_desc' %}selected{% endif %}>Price High to Low</option>
+        </select>
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-primary">Apply</button>
+      </div>
+    </div>
+
+    <!-- Toggle for User Search -->
+    <div class="form-check form-check-inline">
+      <input class="form-check-input" type="radio" name="search_type" id="productSearch" value="product" {% if search_type == 'product' %}checked{% endif %}>
+      <label class="form-check-label" for="productSearch">Product</label>
+    </div>
+    <div class="form-check form-check-inline">
+      <input class="form-check-input" type="radio" name="search_type" id="userSearch" value="user" {% if search_type == 'user' %}checked{% endif %}>
+      <label class="form-check-label" for="userSearch">User</label>
+    </div>
+  </form>
+
+  <!-- Available products for sale -->
+  <div id="products-section" {% if search_type == 'user' %}style="display: none;"{% endif %}>
+    <h2 class="text-center mb-4">Products for Sale:</h2>
+    <div class="row">
+      {% for product in avail_products %}
+      <div class="col-md-4 mb-4">
+        <div class="card">
+          <img src="{{ product.image_url }}" class="card-img-top" alt="{{ product.name }}">
+          <div class="card-body">
+            <h5 class="card-title">{{ product.name }}</h5>
+            <p class="card-text">{{ product.description }}</p>
+            <p class="card-text"><strong>Price:</strong> ${{ "%.2f" | format(product.price) }}</p>
+            <p class="card-text"><strong>Category:</strong> {{ product.category }}</p>
+            <p class="card-text"><strong>Available:</strong> {{ 'Yes' if product.available else 'No' }}</p>
+            <a href="/product/{{ product.id }}" class="btn btn-primary">View Product</a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- User search results -->
+  <div id="users-section" {% if search_type == 'product' %}style="display: none;"{% endif %}>
+    {% if users %}
+    <h2 class="text-center mb-4">User Search Results:</h2>
+    <div class="row">
+      {% for user in users %}
+      <div class="col-md-4 mb-4">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">{{ user.firstname }} {{ user.lastname }}</h5>
+            <p class="card-text"><strong>Email:</strong> {{ user.email }}</p>
+            <p class="card-text"><strong>Account Number:</strong> {{ user.id }}</p>
+            <a href="{{ url_for('users.public_view', user_id=user.id) }}" class="btn btn-primary">View Profile</a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Pagination Controls -->
+  {% if total_pages > 1 %}
+  <nav aria-label="Page navigation" class="mt-5">
+    <ul class="pagination justify-content-center">
+      <li class="page-item {% if current_page == 1 %}disabled{% endif %}">
+        <a class="page-link" href="{{ url_for('index.index', page=1, search=search_query, search_type=search_type) }}" aria-label="First">
+          <span aria-hidden="true">&laquo;&laquo;</span>
+        </a>
+      </li>
+      <li class="page-item {% if current_page == 1 %}disabled{% endif %}">
+        <a class="page-link" href="{{ url_for('index.index', page=current_page-1, search=search_query, search_type=search_type) }}" aria-label="Previous">
+          <span aria-hidden="true">&laquo;</span>
+        </a>
+      </li>
+
+      <!-- Page Number Links -->
+      {% for page_num in page_range %}
+        {% if page_num == '...' %}
+          <li class="page-item disabled"><span class="page-link">...</span></li>
+        {% else %}
+          <li class="page-item {% if page_num == current_page %}active{% endif %}">
+            <a class="page-link" href="{{ url_for('index.index', page=page_num, search=search_query, search_type=search_type) }}">{{ page_num }}</a>
+          </li>
+        {% endif %}
+      {% endfor %}
+
+      <li class="page-item {% if current_page == total_pages %}disabled{% endif %}">
+        <a class="page-link" href="{{ url_for('index.index', page=current_page+1, search=search_query, search_type=search_type) }}" aria-label="Next">
+          <span aria-hidden="true">&raquo;</span>
+        </a>
+      </li>
+      <li class="page-item {% if current_page == total_pages %}disabled{% endif %}">
+        <a class="page-link" href="{{ url_for('index.index', page=total_pages, search=search_query, search_type=search_type) }}" aria-label="Last">
+          <span aria-hidden="true">&raquo;&raquo;</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+  {% endif %}
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const productSearch = document.getElementById('productSearch');
+    const userSearch = document.getElementById('userSearch');
+    const categoryDropdown = document.querySelector('.category-dropdown');
+    const sortDropdown = document.querySelector('.sort-dropdown');
+    const productsSection = document.getElementById('products-section');
+    const usersSection = document.getElementById('users-section');
+    const searchForm = document.getElementById('search-form');
+
+    function toggleSearchType() {
+      if (userSearch.checked) {
+        categoryDropdown.style.display = 'none';
+        sortDropdown.style.display = 'none';
+        productsSection.style.display = 'none';
+        usersSection.style.display = 'block';
+      } else {
+        categoryDropdown.style.display = 'block';
+        sortDropdown.style.display = 'block';
+        productsSection.style.display = 'block';
+        usersSection.style.display = 'none';
+      }
+    }
+
+    productSearch.addEventListener('change', function() {
+      toggleSearchType();
+      searchForm.submit();
+    });
+
+    userSearch.addEventListener('change', function() {
+      toggleSearchType();
+      searchForm.submit();
+    });
+
+    toggleSearchType();
+  });
+</script>
+{% endblock %}

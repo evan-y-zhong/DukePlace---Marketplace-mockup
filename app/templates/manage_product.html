@@ -1,0 +1,63 @@
+{% extends "seller_base.html" %} {% block content %}
+<div class="container my-5">
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages(with_categories=True) %} {% if
+  messages %}
+  <div class="mb-4">
+    {% for category, message in messages %}
+    <div
+      class="alert alert-{{ category }} alert-dismissible fade show"
+      role="alert"
+    >
+      {{ message }}
+      <button
+        type="button"
+        class="btn-close"
+        data-bs-dismiss="alert"
+        aria-label="Close"
+      ></button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %} {% endwith %}
+
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 text-primary">Manage Product</h1>
+  </div>
+
+  <!-- Product Details -->
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h5 class="card-title">{{ product.name }}</h5>
+      <p class="card-text">
+        <strong>Current Quantity:</strong> {{ inventory_item.quantity }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Update Quantity Form -->
+  <div class="mt-4">
+    <form method="POST" class="row g-3">
+      <div class="col-md-6">
+        <label for="quantity" class="form-label">New Quantity</label>
+        <input
+          type="number"
+          class="form-control"
+          id="quantity"
+          name="quantity"
+          placeholder="Enter new quantity"
+          min="0"
+          value="{{ inventory_item.quantity }}"
+          required
+        />
+      </div>
+      <div class="col-md-6 d-flex align-items-end">
+        <button type="submit" class="btn btn-success w-100">
+          <i class="bi bi-pencil-square"></i> Update Quantity
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "buyer_base.html" %} {% block content %}
+<div class="container mt-5">
+  <h2>Change Quantity</h2>
+  <form
+    method="POST"
+    action="{{ url_for('carts.update_quantity', item_id=item.id) }}"
+  >
+    <div class="form-group">
+      <label for="quantity">New Quantity</label>
+      <input
+        type="number"
+        id="quantity"
+        name="quantity"
+        class="form-control"
+        min="1"
+        value="{{ item.quantity }}"
+        required
+      />
+    </div>
+    <button type="submit" class="btn btn-primary">Update Quantity</button>
+    <a href="{{ url_for('carts.cart') }}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+{% endblock %}

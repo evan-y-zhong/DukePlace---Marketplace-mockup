@@ -1,0 +1,72 @@
+{% extends "buyer_base.html" %} {% block content %} {% with messages =
+get_flashed_messages(with_categories=True) %} {% if messages %} {% for category,
+message in messages %}
+<div class="alert alert-{{ category }}">{{ message }}</div>
+{% endfor %} {% endif %} {% endwith %}
+<div class="container mt-4">
+  <h2 class="text-center">Edit Product</h2>
+  <form
+    method="POST"
+    action="{{ url_for('products.edit_product', id=product.id) }}"
+    class="form mt-3"
+  >
+    <div class="form-group">
+      <label for="product-name">Product Name:</label>
+      <input
+        type="text"
+        class="form-control"
+        id="product-name"
+        name="name"
+        value="{{ product.name }}"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="description">Description:</label>
+      <textarea
+        class="form-control"
+        id="description"
+        name="description"
+        required
+      >
+{{ product.description }}</textarea
+      >
+    </div>
+    <div class="form-group">
+      <label for="price">Price:</label>
+      <input
+        type="number"
+        class="form-control"
+        id="price"
+        name="price"
+        step="0.01"
+        value="{{ product.price }}"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="category">Category:</label>
+      <input
+        type="text"
+        class="form-control"
+        id="category"
+        name="category"
+        value="{{ product.category }}"
+        required
+      />
+    </div>
+    <div class="form-group">
+      <label for="image-url">Image URL:</label>
+      <input
+        type="url"
+        class="form-control"
+        id="image-url"
+        name="image_url"
+        value="{{ product.image_url }}"
+        required
+      />
+    </div>
+    <button type="submit" class="btn btn-primary">Update Product</button>
+  </form>
+</div>
+{% endblock %}

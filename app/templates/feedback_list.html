@@ -1,0 +1,39 @@
+{% extends "buyer_base.html" %}
+
+{% block content %}
+{% with messages = get_flashed_messages(with_categories=True) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+<head>
+    <title>User Feedback</title>
+</head>
+<body>
+    <h1 class="text-center my-4">Your Feedback</h1>
+    <table class='table table-hover table-bordered container'
+    style="width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; margin-bottom: 30px;">
+    <thead class="thead-dark" style="background-color: #f3f3f3; color: #333; text-align: left;">
+      <tr style="border-bottom: 2px solid #ddd;">
+        <th scope="col" style="padding: 10px;">Product</th>
+        <th scope="col" style="padding: 10px;">Rating</th>
+        <th scope="col" style="padding: 10px;">Comment</th>
+        <th scope="col" style="padding: 10px;">Time of Review</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for feedback in feedback %}
+      <tr style="border-bottom: 1px solid #ddd;">
+        <td><a href="{{ url_for('products.product', id=feedback.product_id) }}">{{ feedback.product_name }}</a></td>
+        <td>{{ feedback.rating }}</td>
+        <td>{{ feedback.comment }}</td>
+        <td>{{ feedback.time_purchased }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</body>
+</html>
+{% endblock %}

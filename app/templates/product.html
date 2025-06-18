@@ -1,0 +1,259 @@
+{% extends "buyer_base.html" %}
+{% block content %}
+<style>
+    .star-rating i {
+        cursor: pointer;
+        padding: 2px;
+        font-size: 1.5rem;
+    }
+
+    .star-rating-edit i,
+    .star-rating-new i {
+        color: #e4e5e9;  
+    }
+
+    .star-rating-edit i.fas,
+    .star-rating-new i.fas {
+        color: #ffc107 !important;  
+    }
+</style>
+<script src="https://kit.fontawesome.com/8bab419e50.js" crossorigin="anonymous"></script>
+
+{% with messages = get_flashed_messages(with_categories=True) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<!-- Main Container -->
+<div class="container mt-5">
+    <!-- Product Details Section -->
+    <div class="row">
+        <!-- Product Image -->
+        <div class="col-md-5">
+            <img src="{{ product.image_url or url_for('static', filename='images/default-image.jpg') }}" alt="{{ product.name }}" class="img-fluid">
+        </div>
+        <!-- Product Info -->
+        <div class="col-md-7">
+            <h1>{{ product.name }}</h1>
+            <div class="average-rating mb-2">
+                {% if average_rating > 0 %}
+                    <div class="star-rating d-inline-block">
+                        {% for _ in range(full_stars) %}
+                            <i class="fa-solid fa-star text-warning"></i>
+                        {% endfor %}
+                        {% if half_star %}
+                            <i class="fa-solid fa-star-half-alt text-warning"></i>
+                        {% endif %}
+                        {% for _ in range(empty_stars) %}
+                            <i class="fa-regular fa-star text-warning"></i>
+                        {% endfor %}
+                    </div>
+                    <span class="ml-2">{{ average_rating }} out of 5</span>
+                {% else %}
+                    <p>No ratings yet.</p>
+                {% endif %}
+            </div>
+            <hr>
+            <h2 class="text-danger font-weight-bold">${{ "%.2f" | format(product.price) }}</h2>
+            <p>{{ product.description or 'No description available.' }}</p>
+            <p><strong>Availability:</strong> {{ 'In Stock' if product.available else 'Out of Stock' }}</p>
+            
+            <!-- Add to Cart Form -->
+            <form action="{{ url_for('carts.add_to_cart', product_id=product.id) }}" method="post" class="mt-4">
+                <div class="form-group">
+                    <label for="seller_id">Seller:</label>
+                    <select id="seller_id" name="seller_id" class="form-control w-75" required onchange="updateSellerName()">
+                        {% for seller in sellers %}
+                            <option value="{{ seller.id }}" data-seller-name="{{ seller.name }}">{{ seller.name }} - {{ seller.quantity }} available</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <input type="hidden" id="seller_name" name="seller_name" value="">
+                <div class="form-group">
+                    <label for="quantity">Quantity:</label>
+                    <input type="number" id="quantity" name="quantity" min="1" value="1" required class="form-control w-25">
+                </div>
+                {% if current_user.is_authenticated %}
+                    <button type="submit" class="btn btn-warning btn-lg btn-block mt-3">Add to Cart</button>
+                {% else %}
+                    <p>Please <a href="{{ url_for('users.login') }}">login</a> to add to cart.</p>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+    <!-- Product Description -->
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <h3>Product Description</h3>
+            <p>{{ product.description or 'No description available.' }}</p>
+        </div>
+    </div>
+
+    <!-- Product Feedback -->
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <h3>Customer Reviews ({{ len_all_feedback }})</h3>
+            {% if all_feedback %}
+                <div class="mt-3">
+                    {% for feedback in all_feedback %}
+                        <div class="border p-3 mb-3 rounded">
+                            <div class="d-flex align-items-center">
+                                <div class="star-rating mr-2">
+                                    {% for i in range(1, 6) %}
+                                        <i class="fa{% if feedback.rating >= i %}s{% else %}r{% endif %} fa-star text-warning"></i>
+                                    {% endfor %}
+                                </div>
+                                <strong>{{ feedback.username }}</strong>
+                            </div>
+                            <p>{{ feedback.comment }}</p>
+                            <p><small><em>Submitted on: {{ feedback.time_purchased }}</em></small></p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>No feedback available for this product.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- User Feedback Form -->
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <h3>Write a Review</h3>
+            {% if current_user.is_authenticated %}
+                {% if user_feedback %}
+                    <!-- Edit Feedback Form -->
+                    <div class="button-container" style="display: flex; gap: 8px;">
+                        <form action="{{ url_for('feedbacks.add_or_update_feedback', product_id=product.id) }}" method="POST">
+                            <div class="form-group">
+                                <label for="rating-edit">Your Rating:</label>
+                                <div class="star-rating star-rating-edit">
+                                    {% for i in range(1, 6) %}
+                                        <i class="fa{% if user_feedback.rating >= i %}s{% else %}r{% endif %} fa-star text-warning" data-rating="{{ i }}"></i>
+                                    {% endfor %}
+                                </div>
+                                <input type="hidden" name="rating" id="rating-edit" value="{{ user_feedback.rating }}">
+                            </div>
+                            <div class="form-group">
+                                <label for="comment-edit">Your Comment:</label>
+                                <textarea name="comment" id="comment-edit" required class="form-control">{{ user_feedback.comment }}</textarea>
+                            </div>
+                            <div class="button-group" style="display: flex; gap: 8px;">
+                                <button class="btn btn-primary" type="submit">Update Feedback</button>
+                                </form>
+                                <form action="{{ url_for('feedbacks.delete_feedback', product_id=product.id) }}" method="POST" style="margin: 0;">
+                                    <button class="btn btn-danger" type="submit">Delete Feedback</button>
+                                </form>
+                            </div>
+                    </div>
+                {% else %}
+                    <!-- New Feedback Form -->
+                    <form action="{{ url_for('feedbacks.add_or_update_feedback', product_id=product.id) }}" method="POST">
+                        <div class="form-group">
+                            <label for="rating-new">Your Rating:</label>
+                            <div class="star-rating star-rating-new">
+                                {% for i in range(1, 6) %}
+                                    <i class="fa-regular fa-star text-warning" data-rating="{{ i }}"></i>
+                                {% endfor %}
+                            </div>
+                            <input type="hidden" name="rating" id="rating-new" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="comment-new">Your Comment:</label>
+                            <textarea name="comment" id="comment-new" required class="form-control"></textarea>
+                        </div>
+                        <button class="btn btn-success" type="submit">Submit Feedback</button>
+                    </form>
+                {% endif %}
+            {% else %}
+                <p>Please <a href="{{ url_for('users.login') }}">log in</a> to leave feedback.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+
+<style>
+    .average-rating .star-rating i {
+        font-size: 1.5rem;
+    }
+    .btn-warning {
+        background-color: #ff9900;
+        border-color: #ff9900;
+    }
+    .btn-warning:hover {
+        background-color: #e68a00;
+        border-color: #e68a00;
+    }
+    .product-description {
+        font-size: 1.1em;
+    }
+    .customer-reviews h3 {
+        margin-top: 40px;
+    }
+    .customer-reviews .border {
+        background-color: #f9f9f9;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        function handleStarRating(containerClass, inputId) {
+            const container = document.querySelector('.' + containerClass);
+            if (!container) return;
+
+            const stars = container.querySelectorAll('i');
+            const input = document.getElementById(inputId);
+
+            function updateStars(rating) {
+                stars.forEach((star, index) => {
+                    star.classList.remove('fa-solid', 'fa-regular');
+                    star.classList.add(index < rating ? 'fa-solid' : 'fa-regular');
+                });
+                input.value = rating;
+            }
+
+            stars.forEach((star) => {
+                star.addEventListener('click', (e) => {
+                    const rating = parseInt(e.target.dataset.rating);
+                    updateStars(rating);
+                });
+
+                star.addEventListener('mouseover', (e) => {
+                    const rating = parseInt(e.target.dataset.rating);
+                    stars.forEach((s, index) => {
+                        s.classList.remove('fa-solid', 'fa-regular');
+                        s.classList.add(index < rating ? 'fa-solid' : 'fa-regular');
+                    });
+                });
+            });
+
+            container.addEventListener('mouseout', () => {
+                updateStars(parseInt(input.value) || 0);
+            });
+
+            updateStars(parseInt(input.value) || 0);
+        }
+
+        handleStarRating('star-rating-new', 'rating-new');
+        handleStarRating('star-rating-edit', 'rating-edit');
+
+        function updateSellerName() {
+            const select = document.getElementById('seller_id');
+            const selectedOption = select.options[select.selectedIndex];
+            document.getElementById('seller_name').value = selectedOption.dataset.sellerName;
+        }
+        const sellerSelect = document.getElementById('seller_id');
+        if (sellerSelect) {
+            sellerSelect.addEventListener('change', updateSellerName);
+            updateSellerName(); 
+        }
+    });
+</script>
+
+{% endblock %}

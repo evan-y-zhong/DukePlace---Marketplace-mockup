@@ -1,0 +1,255 @@
+{% extends "buyer_base.html" %} {% block content %}
+<div class="container my-5">
+  <!-- User Profile Header -->
+  <div class="row mb-4">
+    <div class="col text-center">
+      <h2 class="fw-bold">User Profile</h2>
+      <p class="fs-5">
+        Balance:
+        <span class="text-success"
+          >${{ current_user.balance | round(2) if current_user.balance is not
+          none else 0.00 }}</span
+        >
+      </p>
+    </div>
+  </div>
+
+  <!-- Flash Messages -->
+  {% with messages = get_flashed_messages() %} {% if messages %}
+  <div class="row mb-4">
+    <div class="col">
+      <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <ul class="mb-0">
+          {% for message in messages %}
+          <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+  {% endif %} {% endwith %}
+
+  <!-- Top Up and Withdraw Forms -->
+  <div class="row mb-5">
+    <!-- Top Up Card -->
+    <div class="col-md-6 mb-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="card-title text-center">Top Up Balance</h5>
+          <form method="POST" action="{{ url_for('users.top_up') }}">
+            <div class="input-group">
+              <span class="input-group-text">$</span>
+              <input
+                type="number"
+                name="amount"
+                class="form-control"
+                placeholder="Amount to top up"
+                min="0.01"
+                step="0.01"
+                required
+              />
+              <button class="btn btn-success" type="submit">Top Up</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Withdraw Card -->
+    <div class="col-md-6 mb-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="card-title text-center">Withdraw Balance</h5>
+          <form method="POST" action="{{ url_for('users.withdraw') }}">
+            <div class="input-group">
+              <span class="input-group-text">$</span>
+              <input
+                type="number"
+                name="amount"
+                class="form-control"
+                placeholder="Amount to withdraw"
+                min="0.01"
+                step="0.01"
+                required
+              />
+              <button class="btn btn-danger" type="submit">Withdraw</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Balance History Chart -->
+  <div class="row mb-5">
+    <div class="col">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title text-center">Balance History</h5>
+          <canvas id="balanceHistoryChart" class="w-100" height="400"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Profile Form -->
+  <div class="row mb-5">
+    <div class="col">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5 class="card-title text-center">Edit Profile</h5>
+          <form method="POST" action="{{ url_for('users.profile') }}">
+            {{ form.hidden_tag() }}
+            <div class="row g-3">
+              <div class="col-md-6">
+                <div class="form-group">
+                  {{ form.firstname.label(class="form-label fw-bold") }} {{
+                  form.firstname(class="form-control", placeholder="First Name")
+                  }}
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  {{ form.lastname.label(class="form-label fw-bold") }} {{
+                  form.lastname(class="form-control", placeholder="Last Name")
+                  }}
+                </div>
+              </div>
+            </div>
+            <div class="form-group mt-3">
+              {{ form.email.label(class="form-label fw-bold") }} {{
+              form.email(class="form-control", placeholder="Email Address") }}
+            </div>
+            <div class="row g-3 mt-3">
+              <div class="col-md-6">
+                <div class="form-group">
+                  {{ form.password.label(class="form-label fw-bold") }} {{
+                  form.password(class="form-control", placeholder="New
+                  Password") }}
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="form-group">
+                  {{ form.password2.label(class="form-label fw-bold") }} {{
+                  form.password2(class="form-control", placeholder="Confirm
+                  Password") }}
+                </div>
+              </div>
+            </div>
+            <div class="form-group mt-3">
+              {{ form.address.label(class="form-label fw-bold") }} {{
+              form.address(class="form-control", placeholder="Residential
+              Address") }}
+            </div>
+            <div class="text-center mt-4">
+              <button type="submit" class="btn btn-primary px-5">
+                Update Profile
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/date-fns@2.30.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+      const balanceHistory = {{ balance_history | tojson | safe }}; // why are there errors here?
+
+      const dataPoints = balanceHistory.map(item => ({
+          x: new Date(item.time),
+          y: item.balance
+      }));
+
+      const ctx = document.getElementById('balanceHistoryChart').getContext('2d');
+      const balanceHistoryChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+              datasets: [{
+                  label: 'Balance Over Time',
+                  data: dataPoints,
+                  fill: true,
+                  backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                  borderColor: 'rgba(54, 162, 235, 1)',
+                  tension: 0.4,
+                  pointRadius: 3,
+                  pointBackgroundColor: 'rgba(54, 162, 235, 1)'
+              }]
+          },
+          options: {
+              responsive: true,
+              plugins: {
+                  legend: {
+                      display: true,
+                      position: 'top',
+                      labels: {
+                          font: {
+                              size: 14
+                          }
+                      }
+                  },
+                  tooltip: {
+                      mode: 'index',
+                      intersect: false,
+                      callbacks: {
+                          label: function(context) {
+                              return `$${context.parsed.y.toFixed(2)}`;
+                          }
+                      }
+                  }
+              },
+              interaction: {
+                  mode: 'nearest',
+                  axis: 'x',
+                  intersect: false
+              },
+              scales: {
+                  x: {
+                      type: 'time',
+                      time: {
+                          unit: 'day',
+                          tooltipFormat: 'PP'
+                      },
+                      title: {
+                          display: true,
+                          text: 'Date',
+                          font: {
+                              size: 16,
+                              weight: 'bold'
+                          }
+                      },
+                      grid: {
+                          display: false
+                      }
+                  },
+                  y: {
+                      title: {
+                          display: true,
+                          text: 'Balance ($)',
+                          font: {
+                              size: 16,
+                              weight: 'bold'
+                          }
+                      },
+                      ticks: {
+                          callback: function(value) {
+                              return '$' + value;
+                          }
+                      },
+                      grid: {
+                          borderDash: [5, 5]
+                      }
+                  }
+              }
+          }
+      });
+  });
+</script>
+
+{% endblock %}
